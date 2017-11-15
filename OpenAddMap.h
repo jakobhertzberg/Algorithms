@@ -1,38 +1,44 @@
-/* insert any headers you might need */
+#ifndef _OPENADDMAP_H_
+#define _OPENADDMAP_H_
+
+#include <cstddef>
+#include "Entry.h"
+using namespace std;
 
 class OpenAddMap
 {
 private:
     /* insert anything else you might need */
+    Entry **hashtable; //hashtable with pointers to entrypointer
+    float maxthreshold=0.75; //thresholds for the load factor
+    float minthreshold=0.25;
+    unsigned int tablesize=4; //default of 4
 
 public:
 
     /* insert anything else you might need */
 
-    // defines which probing scheme are available
     enum class ProbingScheme : uint8_t
     {
         LINEAR,
         QUADRATIC,
         DOUBLE
     };
-
+    ProbingScheme probing;
     // Constructor, takes a ProbingScheme as argument
-    OpenAddMap(ProbingScheme const);
-
-    // returns the size (reserved slots) of the table.
+    OpenAddMap(ProbingScheme const scheme);
+    //functions
+    int hashfunc(int key);
+    int hashfunc2(int key);
     size_t size() const;
-    // returns the number of elements currently in the table (not including NIL markers)
     size_t numElem() const;
-
-    // insert a new element into the table. On success return true.
-    // If element was already in the table return false.
-    bool insert(unsigned const int);
-
-    //search for entry in the table. If found return true otherwise false.
-    bool find(unsigned const int);
-
-    // delete entry from table. If deleted return true.
-    // If element was not in the table return false.
-    bool remove(unsigned const int);
+    float getloadfactor();
+    void resize(int decision);
+    bool insert(unsigned const int key);
+    bool find(unsigned const int key);
+    bool remove(unsigned const int key);
+    int debug();
+    void printtable();
 };
+
+#endif
