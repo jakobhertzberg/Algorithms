@@ -120,7 +120,7 @@ return false;
 bool OpenAddMap::remove(unsigned const int key){
     int hashvalue = hashfunc(key);
     if(find(key)){
-        hashtable[hashvalue]->changekey(-2u);
+        hashtable[hashvalue]->changekey(-1u);
         if(getloadfactor()<=minthreshold){ //resizing if the table got too small
             resize(2);
         }
