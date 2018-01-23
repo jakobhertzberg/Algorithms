@@ -14,7 +14,7 @@ analyzefluxbal<-function(matfile,Biomass,output){
     obj<-c()
     mainreaction<-c()
     for(i in 1:S[[1]]@Dim[2]){ #get biomass reaction and create obj function
-      if(grepl("biomass",rxns[i])){
+      if(grepl("biomass",rxns[i],ignore.case	= TRUE)){
         obj<-c(obj,1)
         mainreaction<-c(mainreaction,rxns[i])
       }
