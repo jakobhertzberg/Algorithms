@@ -1,3 +1,35 @@
+
+calculatemax<-function(S,obj,lb,ub){
+  #Initialize lp and set row bounds
+  lp <- initProbGLPK()
+  setObjDirGLPK(lp, GLP_MAX)
+  rows<-S[[1]]@Dim[1]
+  columns<-S[[1]]@Dim[2]
+  addRowsGLPK(lp,nrows=rows)
+  addColsGLPK(lp,ncols=columns)
+  lbrows <- rep(0,rows)
+  type <- rep(GLP_DB,rows)
+  setRowsBndsGLPK(lp, 1:rows, lbrows, type)
+  
+  #set column bounds and objective function
+  type <- rep(GLP_DB,columns)
+  setColsBndsObjCoefsGLPK(lp, 1:columns, lb, ub, obj, type)
+  
+  #load constraint matrix
+  summary<-summary(S[[1]])
+  ia <- summary$i
+  ja <- summary$j
+  ar <- summary$x
+  loadMatrixGLPK(lp,length(ia), ia, ja, ar)
+  
+
+  solveSimplexGLPK(lp)
+  optval<-getObjValGLPK(lp)
+  return(list(lp=lp,optval=optval))
+}
+
+
+
 analyzefluxbal<-function(matfile,Biomass,output){
   library(R.matlab)
   library(glpkAPI)
@@ -58,31 +90,3 @@ analyzefluxbal<-function(matfile,Biomass,output){
   }
 }
 
-calculatemax<-function(S,obj,lb,ub){
-  #Initialize lp and set row bounds
-  lp <- initProbGLPK()
-  setObjDirGLPK(lp, GLP_MAX)
-  rows<-S[[1]]@Dim[1]
-  columns<-S[[1]]@Dim[2]
-  addRowsGLPK(lp,nrows=rows)
-  addColsGLPK(lp,ncols=columns)
-  lbrows <- rep(0,rows)
-  type <- rep(GLP_DB,rows)
-  setRowsBndsGLPK(lp, 1:rows, lbrows, type)
-  
-  #set column bounds and objective function
-  type <- rep(GLP_DB,columns)
-  setColsBndsObjCoefsGLPK(lp, 1:columns, lb, ub, obj, type)
-  
-  #load constraint matrix
-  summary<-summary(S[[1]])
-  ia <- summary$i
-  ja <- summary$j
-  ar <- summary$x
-  loadMatrixGLPK(lp,length(ia), ia, ja, ar)
-  
-
-  solveSimplexGLPK(lp)
-  optval<-getObjValGLPK(lp)
-  return(list(lp=lp,optval=optval))
-}
