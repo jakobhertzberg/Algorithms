@@ -8,11 +8,20 @@ calculatemax<-function(S,obj,lb,ub){
   addRowsGLPK(lp,nrows=rows)
   addColsGLPK(lp,ncols=columns)
   lbrows <- rep(0,rows)
-  type <- rep(GLP_DB,rows)
-  setRowsBndsGLPK(lp, 1:rows, lbrows, type)
+  ubrows <-rep(0,rows)
+  type <- rep(GLP_FX,rows)
+  setRowsBndsGLPK(lp, 1:rows, lb=lbrows, ub=ubrows, type)
   
   #set column bounds and objective function
-  type <- rep(GLP_DB,columns)
+  type<-c()
+  for(i in 1:length(lb)){
+    if(lb[i]==ub[i]){
+      type<-c(type,GLP_FX)
+    }
+    else{
+      type<-c(type,GLP_DB)
+    }
+  }
   setColsBndsObjCoefsGLPK(lp, 1:columns, lb, ub, obj, type)
   
   #load constraint matrix
@@ -22,13 +31,11 @@ calculatemax<-function(S,obj,lb,ub){
   ar <- summary$x
   loadMatrixGLPK(lp,length(ia), ia, ja, ar)
   
-
+  
   solveSimplexGLPK(lp)
   optval<-getObjValGLPK(lp)
   return(list(lp=lp,optval=optval))
 }
-
-
 
 analyzefluxbal<-function(matfile,Biomass,output){
   library(R.matlab)
@@ -42,37 +49,32 @@ analyzefluxbal<-function(matfile,Biomass,output){
   description<-unlist(network[6])
 
   if(Biomass=="BIOMASS"){
-    
-    obj<-c()
     mainreaction<-c()
     for(i in 1:S[[1]]@Dim[2]){ #get biomass reaction and create obj function
-      if(grepl("biomass",rxns[i],ignore.case	= TRUE)){
-        obj<-c(obj,1)
-        mainreaction<-c(mainreaction,rxns[i])
-      }
-      else{
-        obj<-c(obj,0)
+      if(grepl("biomass",rxns[i],ignore.case = TRUE)){
+        mainreaction<-c(mainreaction,i)
       }
     }
-    
+
+    obj<-rep(0,length(rxns))
+    obj[mainreaction[1]]=1
+
     result<-calculatemax(S,obj,lb,ub) #calculate solution
     lp<-result$lp
     optval<-result$optval
     
     colvalues<-c()
     results<-data.frame()
-    results<-rbind(results,c(mainreaction,optval))
+    objindex<-mainreaction[1]
+    getObjValGLPK(lp)
     for(i in 1:S[[1]]@Dim[2]){
       colvalues<-c(colvalues,getColPrimGLPK(lp,i))
     }
-    objindex<-match(mainreaction,rxns)
-    colvalues<-colvalues[-objindex]
-    reacnames<-rxns[-objindex]
-    results2<-as.data.frame(cbind(reacnames,colvalues))
-    colnames(results2)<-c("Reaction","Rate")
+    colvalues<-c(colvalues[objindex],colvalues[-objindex])
+    reacnames<-c(rxns[objindex],rxns[-objindex])
+    results<-as.data.frame(cbind(reacnames,colvalues))
     colnames(results)<-c("Reaction","Rate")
-    results<-rbind(results,results2) #create output
-    write.table(results,output,sep="\t",row.names=FALSE)
+    write.table(results,output,sep="\t\t",col.names=FALSE,row.names=FALSE,quote = FALSE)
     print(paste("output saved to",output))
   }
   else if(Biomass=="BLOCKED"){
@@ -86,7 +88,7 @@ analyzefluxbal<-function(matfile,Biomass,output){
         results<-c(results,rxns[i])
       }
     }
-    print(results)
+    return(results)
   }
 }
 
