@@ -1,9 +1,9 @@
 
-calculatemax<-function(S,obj,lb,ub){
-  #this function takes the S matrix,objective function and lower as well as upper bounds as input
+calculatemax<-function(S,obj,lb,ub,dir=GLP_MAX){
+  #this function takes the S matrix,objective function,LP direction (GLP_MAX or GLP_MIN) and lower as well as upper bounds as input
   #and returns the LP and the corresponding optimal value
   lp <- initProbGLPK() #initialize lp
-  setObjDirGLPK(lp, GLP_MAX) 
+  setObjDirGLPK(lp, dir) 
   rows<-S[[1]]@Dim[1] #initialize rows and columns
   columns<-S[[1]]@Dim[2]
   addRowsGLPK(lp,nrows=rows)
@@ -34,6 +34,7 @@ calculatemax<-function(S,obj,lb,ub){
   loadMatrixGLPK(lp,length(ia), ia, ja, ar)
   
   #solve with simplex algorithm and return LP and optimal value
+  setSimplexParmGLPK(MSG_LEV,GLP_MSG_OFF)
   solveSimplexGLPK(lp)
   optval<-getObjValGLPK(lp)
   return(list(lp=lp,optval=optval))
@@ -85,15 +86,15 @@ analyzefluxbal<-function(matfile,Biomass,output){
   else if(Biomass=="BLOCKED"){
     columns=length(rxns) 
     results<-c()
-    for(i in 1:columns){ #calculate the optimal value for the maximization of each reaction.
+    for(i in 1:columns){ #calculate the optimal value for each reaction.
       obj<-rep(0,columns)
       obj[i]=1
-      optval=calculatemax(S,obj,lb,ub)$optval
-      if(optval==0){ #If the optimal value equal 0 the reaction is blocked and the name is added to the result array
+      maxoptval=calculatemax(S,obj,lb,ub)$optval #get max optimal value
+      minoptval=calculatemax(S,obj,lb,ub,dir=GLP_MIN)$optval #get min value
+      if((maxoptval==0) & (minoptval==0)){ #If the optimal values are equal to 0 the reaction is blocked and the name is added to the result array
         results<-c(results,rxns[i])
       }
     }
     return(results) #return array containing the names of all blocked reactions
   }
 }
-
