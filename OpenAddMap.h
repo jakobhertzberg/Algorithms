@@ -13,6 +13,7 @@ private:
     float maxthreshold=0.75; //thresholds for the load factor
     float minthreshold=0.25;
     unsigned int tablesize=4; //default of 4
+    unsigned int numelem=0;
 
 public:
 
@@ -34,7 +35,8 @@ public:
     size_t numElem() const;
     float getloadfactor();
     void resize(int decision);
-    bool insert(unsigned const int key);
+    int get_hashvalue(unsigned const int key);
+    bool insert(unsigned const int key, bool new_insert = true);
     bool find(unsigned const int key);
     bool remove(unsigned const int key);
     int debug();

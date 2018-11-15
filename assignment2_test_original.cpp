@@ -12,38 +12,17 @@
 
 int main()
 {
-    OpenAddMap map(OpenAddMap::ProbingScheme::DOUBLE);
+    OpenAddMap map(OpenAddMap::ProbingScheme::QUADRATIC);
     bool success = true;
 
     //test insert
-    map.debug();
-    success = map.insert(129);
-    map.debug();
-    success = map.insert(113);
-    map.debug();
-    success = map.insert(97);
-    map.debug();
-    success = map.insert(17);
-    map.debug();
-    success = map.insert(81);
-    map.debug();
-    success = map.insert(33);
-    map.debug();
-    success = map.insert(49);
-    map.debug();
-    success = map.insert(65);
-    map.debug();
     success = map.insert(123);
-    map.debug();
     success = success && map.insert(1234);
-    map.debug();
     success = success && map.insert(12);
-    map.debug();
     success = success && !map.insert(123);
 
-    if (success){
+    if (success)
         std::cout << "insert ok" << std::endl;
-      }
     else
         std::cout << "insert broken" << std::endl;
 
@@ -51,7 +30,6 @@ int main()
     success = !map.remove(125);
     success = success && map.remove(12);
     success = success && !map.remove(12);
-
 
     if (success)
         std::cout << "remove ok" << std::endl;
@@ -70,12 +48,11 @@ int main()
 
     // test numElem
     size_t elem = map.numElem();
-
-    if (elem == 10)
+    map.printtable();
+    if (elem == 2)
         std::cout << "numElem ok" << std::endl;
     else
-
-        std::cout << "numElem broken" << std::endl;
+        std::cout << elem << std::endl;
 
     // test size and load
     size_t s = map.size();
